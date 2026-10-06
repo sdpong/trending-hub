@@ -1,84 +1,28 @@
-name: Fetch Trending Topics
-
+name: Probe Bilibili International
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'scripts/**'
-      - '.github/workflows/fetch-trending.yml'
-
 permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
+  contents: read
 jobs:
-  fetch-and-build:
+  probe:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Test trend sources
-        run: npm test
-
-      - name: Fetch trending data
-        run: npm run fetch
-        
-      - name: Build HTML
-        run: npm run build
-        
-      - name: Commit and push data
+      - name: Probe official creator ranking
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add data/ public/
-          git diff --staged --quiet || git commit -m "Update trending data - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          git push
-          
-  deploy:
-    needs: fetch-and-build
-    runs-on: ubuntu-latest
-    
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-      
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          
-      - name: Pull latest changes
-        run: git pull origin main
-        
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'public'
-          
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          python3 - <<'PY'
+          import urllib.request,json
+          for path in ['listV2', 'list']:
+              url='https://api.bilibili.tv/intl/up/ranking/'+path
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://studio.bilibili.tv/','Origin':'https://studio.bilibili.tv','Accept':'application/json'})
+              try:
+                  with urllib.request.urlopen(req,timeout=25) as r:
+                      body=r.read()
+                      print('ENDPOINT',url,'HTTP',r.status)
+                      try:
+                          data=json.loads(body)
+                          print(json.dumps(data,ensure_ascii=False)[:18000])
+                      except ValueError:
+                          print('Non-JSON response',body[:200].decode(errors='replace'))
+              except Exception as e:
+                  print(type(e).__name__,str(e))
+          PY
