@@ -22,7 +22,7 @@
 | YouTube | RSSHub | ✅ |
 | Instagram | top-hashtags.com | ✅ |
 | 微博 | RSSHub | ✅ |
-| 知乎 | RSSHub | ✅ |
+| 知乎 | 官方网页热榜 API（匿名读取，失败保留缓存） | ✅ |
 | 百度热搜 | 百度 API | ✅ |
 | 抖音 | RSSHub | ✅ |
 
