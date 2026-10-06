@@ -37,9 +37,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Test trend sources
+        run: npm test
+
       - name: Fetch trending data
         run: npm run fetch
-        continue-on-error: true
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          X_WOEID: ${{ vars.X_WOEID || '1' }}
+          X_GETDAYTRENDS_REGION: ${{ vars.X_GETDAYTRENDS_REGION || '' }}
         
       - name: Build HTML
         run: npm run build

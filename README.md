@@ -155,3 +155,34 @@ JSON 结构：
 ## License
 
 MIT License
+
+## X 趋势数据源（替代 Trends24）
+
+默认从 GetDayTrends 获取全球当前趋势，不需要 API Key。配置 `X_BEARER_TOKEN`
+后优先请求 X 官方 `GET /2/trends/by/woeid/{woeid}`，官方请求失败时降级到
+GetDayTrends。这里展示热搜话题，链接到 X 搜索；不提供具体推文正文。
+
+GitHub Actions 配置（Settings → Secrets and variables → Actions）：
+
+| 类型 | 名称 | 默认值 / 用途 |
+| --- | --- | --- |
+| Secret | `X_BEARER_TOKEN` | 可选，X 官方访问令牌；需具备 Trends 接口权限和可用额度 |
+| Variable | `X_WOEID` | `1`，官方 API 地区；美国为 `23424977` |
+| Variable | `X_GETDAYTRENDS_REGION` | 空值为全球；美国为 `united-states` |
+
+两个地区配置分别控制对应来源，请选择一致的地区。未配置 Token 时不请求官方 API。
+第三方页面结构和反爬策略可能变化，抓取成功仅表示取得非空榜单，并不保证上游数据实时性。
+全部来源失败时保留上一份成功榜单，标记 `stale`；没有缓存时标记 `error`。
+JSON 记录 `source`、`status`、`errors`、`lastSuccessAt`，页面展示来源和上次成功时间。
+令牌只用于服务端请求头，不写入 JSON 或 HTML。
+
+本地验证（macOS / Linux，Node.js 20+）：
+
+```bash
+npm ci
+npm test
+npm start
+```
+
+可通过 shell 环境变量配置同名参数。中国网络环境须确保 Node.js 运行进程能够连接
+GetDayTrends / api.x.com；浏览器可访问并不代表终端请求可访问。
