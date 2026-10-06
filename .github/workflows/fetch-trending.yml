@@ -42,9 +42,6 @@ jobs:
 
       - name: Fetch trending data
         run: npm run fetch
-        env:
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          X_ZH_QUERY: ${{ vars.X_ZH_QUERY || '' }}
         
       - name: Build HTML
         run: npm run build

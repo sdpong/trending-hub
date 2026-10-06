@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
-import { fetchChinesePosts, withRegions } from './platform-regions.js';
+import { withRegions } from './platform-regions.js';
+import { fetchChineseTopics } from './chinese-topics.js';
 import { fetchTwitterTrends, mergeTwitterSnapshot } from './x-trends.js';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
@@ -484,8 +485,8 @@ async function main() {
     baidu,
     toutiao
   ] = await Promise.all([
-    fetchTwitterTrends({ env: { ...process.env, X_WOEID: '1', X_GETDAYTRENDS_REGION: '' } }),
-    fetchChinesePosts(),
+    fetchTwitterTrends({ env: {} }),
+    fetchChineseTopics(),
     fetchBilibili(rssHub),
     fetchInstagramTrends(),
     fetchZhihu(rssHub),
