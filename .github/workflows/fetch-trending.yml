@@ -44,8 +44,7 @@ jobs:
         run: npm run fetch
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          X_WOEID: ${{ vars.X_WOEID || '1' }}
-          X_GETDAYTRENDS_REGION: ${{ vars.X_GETDAYTRENDS_REGION || '' }}
+          X_ZH_QUERY: ${{ vars.X_ZH_QUERY || '' }}
         
       - name: Build HTML
         run: npm run build

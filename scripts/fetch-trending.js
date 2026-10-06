@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { fetchChinesePosts, withRegions } from './platform-regions.js';
 import { fetchTwitterTrends, mergeTwitterSnapshot } from './x-trends.js';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
@@ -476,13 +477,15 @@ async function main() {
   // 并行抓取所有平台
   const [
     twitter,
+    chinese,
     bilibili,
     instagram,
     zhihu,
     baidu,
     toutiao
   ] = await Promise.all([
-    fetchTwitterTrends(),
+    fetchTwitterTrends({ env: { ...process.env, X_WOEID: '1', X_GETDAYTRENDS_REGION: '' } }),
+    fetchChinesePosts(),
     fetchBilibili(rssHub),
     fetchInstagramTrends(),
     fetchZhihu(rssHub),
@@ -502,6 +505,8 @@ async function main() {
     }
   };
   
+  withRegions(data.platforms, chinese, previous.platforms, previous.lastUpdated);
+
   // 写入 JSON 文件
   const outputPath = path.join(DATA_DIR, 'trending.json');
   await fs.writeFile(outputPath, JSON.stringify(data, null, 2), 'utf-8');

@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { renderRegionCard } from './platform-regions.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -301,6 +302,14 @@ async function buildHTML() {
       50% { opacity: 0.5; }
     }
     
+    [hidden] { display: none !important; }
+    .region-switch { display:flex; gap:8px; padding:12px 24px 0; }
+    .region-button { cursor:pointer; border:1px solid #555; border-radius:20px; padding:7px 14px; background:transparent; color:var(--text-secondary); }
+    .region-button.active { color:white; background:var(--accent); border-color:var(--accent); }
+    .region-button:focus-visible { outline:2px solid white; outline-offset:3px; }
+    .platform-status, .region-note { margin:10px 24px; font-size:12px; color:var(--text-secondary); line-height:1.5; }
+    .item-hot { display:block; color:var(--text-secondary); font-size:11px; margin-top:4px; }
+    .region-action { display:block; padding:0 24px 18px; color:var(--accent); }
     @media (max-width: 768px) {
       .header h1 {
         font-size: 1.5rem;
@@ -340,7 +349,7 @@ async function buildHTML() {
   
   <main class="container">
     <div class="platforms-grid">
-      ${Object.entries(data.platforms).map(([key, platform]) => `
+      ${Object.entries(data.platforms).map(([key, platform]) => platform.regions ? renderRegionCard(key, platform) : `
       <div class="platform-card" data-platform="${key}">
         <div class="platform-header ${key}">
           <span class="platform-icon">${platform.icon}</span>
@@ -389,6 +398,29 @@ async function buildHTML() {
       });
     });
     
+    document.querySelectorAll('.region-switch').forEach(group => {
+      const card = group.closest('.platform-card');
+      const select = region => {
+        if (!card.querySelector('.region-panel[data-region="' + region + '"]')) return;
+        group.querySelectorAll('.region-button').forEach(button => {
+          const active = button.dataset.region === region;
+          button.classList.toggle('active', active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+        card.querySelectorAll('.region-panel').forEach(panel => {
+          panel.hidden = panel.dataset.region !== region;
+          if (!panel.hidden) card.querySelector('.platform-count').textContent = panel.dataset.count + ' 条';
+        });
+      };
+      try { const saved = localStorage.getItem('region:' + card.dataset.platform); if (saved) select(saved); } catch {}
+      group.addEventListener('click', event => {
+        const button = event.target.closest('.region-button');
+        if (!button) return;
+        select(button.dataset.region);
+        try { localStorage.setItem('region:' + card.dataset.platform, button.dataset.region); } catch {}
+      });
+    });
+
     // 自动刷新页面 (30分钟)
     setTimeout(() => {
       location.reload();
