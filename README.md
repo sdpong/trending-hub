@@ -188,3 +188,5 @@ npm start
 ```
 
 中国网络环境需确保 Node.js 进程可以连接这些来源。
+
+Bilibili 全球入口读取国际版创作中心 Trending Videos 的默认地区榜单（多语言，不代表全球总榜）。本机可能受地区限制，GitHub Actions 已验证可匿名抓取；失败时保留上次成功数据。

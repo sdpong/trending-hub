@@ -9,7 +9,7 @@ export function instagramRegions(globalItems) {
   };
 }
 
-export function withRegions(platforms, chinese, previous = {}, previousUpdatedAt) {
+export function withRegions(platforms, chinese, previous = {}, previousUpdatedAt, international) {
   const x = platforms.twitter;
   const zh = ['ok', 'empty'].includes(chinese.status) ? chinese : {
     ...chinese, ...mergeTwitterSnapshot(chinese, previous.twitter?.regions?.zh, previousUpdatedAt),
@@ -21,7 +21,7 @@ export function withRegions(platforms, chinese, previous = {}, previousUpdatedAt
   const bili = platforms.bilibili;
   bili.regions = {
     zh: { items: bili.items, source: 'Bilibili 国内全站榜', status: bili.items.length ? 'ok' : 'error', note: '国内平台全站榜，不按作者所在地划分。' },
-    global: { items: [], status: 'unsupported', note: '当前数据源没有独立全球榜，请切换中区查看国内全站榜。' }
+    global: international ? { ...international, ...mergeTwitterSnapshot(international, previous.bilibili?.regions?.global, previousUpdatedAt) } : { items: [], status: 'unsupported', note: '国际版数据源暂未接入。' }
   };
   bili.defaultRegion = 'zh';
   platforms.instagram.regions = instagramRegions(platforms.instagram.items);
