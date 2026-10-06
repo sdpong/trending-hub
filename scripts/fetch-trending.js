@@ -486,7 +486,7 @@ async function main() {
     toutiao
   ] = await Promise.all([
     fetchTwitterTrends({ env: {} }),
-    fetchChineseTopics(),
+    fetchChineseTopics({ previous: previous.platforms?.twitter?.regions?.zh }),
     fetchBilibili(rssHub),
     fetchInstagramTrends(),
     fetchZhihu(rssHub),
