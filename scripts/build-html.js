@@ -356,7 +356,7 @@ async function buildHTML() {
           <span class="platform-name">${platform.name}</span>
           <span class="platform-count">${platform.items.length} 条</span>
         </div>
-        ${key === 'twitter' ? `<p class="platform-status" style="padding:0 1.5rem;font-size:0.8rem;color:var(--text-secondary)">
+        ${['twitter', 'zhihu'].includes(key) ? `<p class="platform-status" style="padding:0 1.5rem;font-size:0.8rem;color:var(--text-secondary)">
           ${escapeHtml(platform.source || '尚无成功数据源')} · ${platform.status === 'ok' ? '抓取成功' : platform.items.length ? '更新失败，显示上次榜单' : '抓取失败，暂无缓存'}
           ${platform.lastSuccessAt ? ` · 上次成功：${escapeHtml(new Date(platform.lastSuccessAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }))}` : ''}
         </p>` : ''}

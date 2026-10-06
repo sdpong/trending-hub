@@ -1,3 +1,4 @@
+import { fetchZhihuTrends } from './zhihu-trends.js';
 import fetch from 'node-fetch';
 import { withRegions } from './platform-regions.js';
 import { fetchChineseTopics } from './chinese-topics.js';
@@ -156,49 +157,6 @@ async function fetchBilibili(rssHub) {
     url: item.link,
     hot: '',
     platform: 'bilibili'
-  }));
-}
-
-// 抓取知乎热榜
-async function fetchZhihu(rssHub) {
-  let items = await fetchRSS(`${rssHub}/zhihu/hot`);
-  
-  // 备用：知乎热榜 API
-  if (items.length === 0) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      
-      const res = await fetch('https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=30', {
-        headers: {
-          ...HEADERS,
-          'x-api-version': '3.0.40'
-        },
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
-      const data = await res.json();
-      if (data?.data) {
-        return data.data.slice(0, 30).map((item, index) => ({
-          rank: index + 1,
-          title: item.target?.title || item.title,
-          url: item.target?.url || `https://www.zhihu.com/question/${item.target?.id}`,
-          hot: item.detail_text || '',
-          platform: 'zhihu'
-        }));
-      }
-    } catch (e) {
-      console.error('Zhihu fallback failed:', e.message);
-    }
-  }
-  
-  return items.map((item, index) => ({
-    rank: index + 1,
-    title: item.title,
-    url: item.link,
-    hot: '',
-    platform: 'zhihu'
   }));
 }
 
@@ -489,7 +447,7 @@ async function main() {
     fetchChineseTopics({ previous: previous.platforms?.twitter?.regions?.zh }),
     fetchBilibili(rssHub),
     fetchInstagramTrends(),
-    fetchZhihu(rssHub),
+    fetchZhihuTrends(),
     fetchBaidu(),
     fetchToutiao()
   ]);
@@ -500,7 +458,7 @@ async function main() {
       twitter: { name: 'X 趋势', icon: '𝕏', ...mergeTwitterSnapshot(twitter, previous.platforms?.twitter, previous.lastUpdated) },
       bilibili: { name: 'Bilibili', icon: '📺', items: bilibili },
       instagram: { name: 'Instagram', icon: '📷', items: instagram },
-      zhihu: { name: '知乎', icon: '💡', items: zhihu },
+      zhihu: { name: '知乎', icon: '💡', ...mergeTwitterSnapshot(zhihu, previous.platforms?.zhihu, previous.lastUpdated) },
       baidu: { name: '百度热搜', icon: '🔍', items: baidu },
       toutiao: { name: '今日头条', icon: '📰', items: toutiao }
     }
