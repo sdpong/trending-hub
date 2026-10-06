@@ -376,7 +376,7 @@ async function buildHTML() {
   </main>
   
   <footer class="footer">
-    <p>数据来源: RSSHub、X API / GetDayTrends 及各平台公开接口</p>
+    <p>数据来源: GetDayTrends、蓝不住、SoPilot、RSSHub 及各平台公开接口</p>
     <p>Powered by <a href="https://github.com" target="_blank">GitHub Actions</a> | 开源项目</p>
   </footer>
   
