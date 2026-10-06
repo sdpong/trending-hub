@@ -347,6 +347,10 @@ async function buildHTML() {
           <span class="platform-name">${platform.name}</span>
           <span class="platform-count">${platform.items.length} 条</span>
         </div>
+        ${key === 'twitter' ? `<p class="platform-status" style="padding:0 1.5rem;font-size:0.8rem;color:var(--text-secondary)">
+          ${escapeHtml(platform.source || '尚无成功数据源')} · ${platform.status === 'ok' ? '抓取成功' : platform.items.length ? '更新失败，显示上次榜单' : '抓取失败，暂无缓存'}
+          ${platform.lastSuccessAt ? ` · 上次成功：${escapeHtml(new Date(platform.lastSuccessAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }))}` : ''}
+        </p>` : ''}
         <div class="trending-list">
           ${platform.items.length > 0 ? platform.items.map(item => `
           <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="trending-item">
@@ -363,7 +367,7 @@ async function buildHTML() {
   </main>
   
   <footer class="footer">
-    <p>数据来源: RSSHub, trends24.in, top-hashtags.com 等公开数据源</p>
+    <p>数据来源: RSSHub、X API / GetDayTrends 及各平台公开接口</p>
     <p>Powered by <a href="https://github.com" target="_blank">GitHub Actions</a> | 开源项目</p>
   </footer>
   
@@ -407,7 +411,7 @@ async function buildHTML() {
   
   // 写入 HTML
   const outputPath = path.join(PUBLIC_DIR, 'index.html');
-  await fs.writeFile(outputPath, html, 'utf-8');
+  await fs.writeFile(outputPath, html.replace(/[ \t]+$/gm, ''), 'utf-8');
   
   console.log(`✅ HTML built: ${outputPath}`);
 }

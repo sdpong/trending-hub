@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { fetchTwitterTrends, mergeTwitterSnapshot } from './x-trends.js';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
 import path from 'path';
@@ -239,59 +240,6 @@ async function fetchDouyin(rssHub) {
   }));
 }
 
-// 抓取 X/Twitter 趋势 (通过公开页面)
-async function fetchTwitterTrends() {
-  // 使用 trends24.in 抓取 Twitter 趋势
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-    
-    const res = await fetch('https://trends24.in/', {
-      headers: HEADERS,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    
-    const html = await res.text();
-    const $ = cheerio.load(html);
-    
-    const trends = [];
-    $('.trend-card__list li a').slice(0, 30).each((i, el) => {
-      const title = $(el).text().trim();
-      if (title && !trends.find(t => t.title === title)) {
-        trends.push({
-          rank: trends.length + 1,
-          title: title,
-          url: `https://twitter.com/search?q=${encodeURIComponent(title)}`,
-          hot: '',
-          platform: 'twitter'
-        });
-      }
-    });
-    
-    // 备用选择器
-    if (trends.length === 0) {
-      $('a[href*="twitter.com/search"]').slice(0, 30).each((i, el) => {
-        const title = $(el).text().trim();
-        if (title && title.length > 1 && !trends.find(t => t.title === title)) {
-          trends.push({
-            rank: trends.length + 1,
-            title: title,
-            url: $(el).attr('href') || `https://twitter.com/search?q=${encodeURIComponent(title)}`,
-            hot: '',
-            platform: 'twitter'
-          });
-        }
-      });
-    }
-    
-    return trends;
-  } catch (error) {
-    console.error('Failed to fetch Twitter trends:', error.message);
-    return [];
-  }
-}
-
 // 抓取 TikTok 趋势
 async function fetchTikTokTrends() {
   try {
@@ -514,6 +462,13 @@ async function main() {
   // 确保数据目录存在
   await fs.mkdir(DATA_DIR, { recursive: true });
   
+  let previous = {};
+  try {
+    previous = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'trending.json'), 'utf8'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
   // 获取可用的 RSSHub
   const rssHub = await getWorkingRSSHub();
   console.log(`📡 Using RSSHub: ${rssHub}`);
@@ -538,7 +493,7 @@ async function main() {
   const data = {
     lastUpdated: new Date().toISOString(),
     platforms: {
-      twitter: { name: 'X (Twitter)', icon: '𝕏', items: twitter },
+      twitter: { name: 'X 趋势', icon: '𝕏', ...mergeTwitterSnapshot(twitter, previous.platforms?.twitter, previous.lastUpdated) },
       bilibili: { name: 'Bilibili', icon: '📺', items: bilibili },
       instagram: { name: 'Instagram', icon: '📷', items: instagram },
       zhihu: { name: '知乎', icon: '💡', items: zhihu },
@@ -558,4 +513,4 @@ async function main() {
   });
 }
 
-main().catch(console.error);
+main().catch(error => { console.error(error); process.exitCode = 1; });
