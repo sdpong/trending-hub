@@ -1,3 +1,4 @@
+import { fetchInternational } from './bilibili-international.js';
 import { fetchZhihuTrends } from './zhihu-trends.js';
 import fetch from 'node-fetch';
 import { withRegions } from './platform-regions.js';
@@ -438,6 +439,7 @@ async function main() {
     twitter,
     chinese,
     bilibili,
+    international,
     instagram,
     zhihu,
     baidu,
@@ -446,6 +448,7 @@ async function main() {
     fetchTwitterTrends({ env: {} }),
     fetchChineseTopics({ previous: previous.platforms?.twitter?.regions?.zh }),
     fetchBilibili(rssHub),
+    fetchInternational(),
     fetchInstagramTrends(),
     fetchZhihuTrends(),
     fetchBaidu(),
@@ -464,7 +467,7 @@ async function main() {
     }
   };
   
-  withRegions(data.platforms, chinese, previous.platforms, previous.lastUpdated);
+  withRegions(data.platforms, chinese, previous.platforms, previous.lastUpdated, international);
 
   // 写入 JSON 文件
   const outputPath = path.join(DATA_DIR, 'trending.json');
