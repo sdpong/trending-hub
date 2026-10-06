@@ -167,10 +167,9 @@ GitHub Actions 配置（Settings → Secrets and variables → Actions）：
 | 类型 | 名称 | 默认值 / 用途 |
 | --- | --- | --- |
 | Secret | `X_BEARER_TOKEN` | 可选，X 官方访问令牌；需具备 Trends 接口权限和可用额度 |
-| Variable | `X_WOEID` | `1`，官方 API 地区；美国为 `23424977` |
-| Variable | `X_GETDAYTRENDS_REGION` | 空值为全球；美国为 `united-states` |
+| Variable | `X_ZH_QUERY` | 可选，中文区搜索关键词；默认查询见下文 |
 
-两个地区配置分别控制对应来源，请选择一致的地区。未配置 Token 时不请求官方 API。
+全球选项固定获取全球趋势；中文区配置见下文。未配置 Token 时不请求官方 API。
 第三方页面结构和反爬策略可能变化，抓取成功仅表示取得非空榜单，并不保证上游数据实时性。
 全部来源失败时保留上一份成功榜单，标记 `stale`；没有缓存时标记 `error`。
 JSON 记录 `source`、`status`、`errors`、`lastSuccessAt`，页面展示来源和上次成功时间。
@@ -186,3 +185,15 @@ npm start
 
 可通过 shell 环境变量配置同名参数。中国网络环境须确保 Node.js 运行进程能够连接
 GetDayTrends / api.x.com；浏览器可访问并不代表终端请求可访问。
+
+## 内容范围切换
+
+X、Bilibili、Instagram 卡片提供“中区 · 中文”和“全球”按钮，分别记住选择。
+“中区”指中文内容，包含大陆、港澳台，不用于判定用户所在地。
+
+- X 全球：固定使用全球趋势源，不再使用旧的 X_WOEID / X_GETDAYTRENDS_REGION 配置。
+- X 中文：配置 Secret `X_BEARER_TOKEN` 后调用官方 Recent Search。默认查询常用中文词并使用 `lang:zh -is:retweet`；最近 24 小时最多 100 条搜索样本，按点赞、转发、回复、引用之和排序，展示最多 30 条。此榜为搜索样本排行，不代表全站中文热榜。可通过 Actions Variable `X_ZH_QUERY` 调整关键词；解析仍只保留 `lang=zh` 内容。搜索 API 可能消耗账号额度，每次运行最多请求一次。未配置时展示 X 中文搜索入口，不用全球榜代替；失败缓存单独保存。
+- Bilibili 中区：国内全站榜。全球：显示当前无独立全球数据源，不复用国内榜冒充全球榜。
+- Instagram：两种范围均为精选标签导航，中文范围含简繁体及大陆、港澳台标签。现有实现没有实时 Instagram 热榜，不将预设标签称为热榜。
+
+官方搜索文档：https://docs.x.com/x-api/posts/search-recent-posts
